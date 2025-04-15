@@ -1,0 +1,180 @@
+﻿version: '3.8'
+
+services:
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+    networks:
+      - microservices-network
+  fileservice:
+    build:
+      context: .
+      dockerfile: FileServices/Dockerfile
+    container_name: fileservice
+    ports:
+      - "5006:80"
+    networks:
+      - microservices-network
+  orderservice:
+    build:
+      context: .
+      dockerfile: OrderServices/Dockerfile
+    container_name: orderservice
+    ports:
+      - "5005:80"
+    environment:
+     - ConnectionStrings__DefaultConnection=Host=order-db;Port=5432;Database=orderDB;Username=admin;Password=12345678
+    depends_on:
+      - order-db
+      - tableservice
+      - userservice
+      - menuservice  
+      - kitchenservice 
+    networks:
+      - microservices-network
+  userservice:
+    build:
+      context: .
+      dockerfile: UserService/Dockerfile
+    container_name: userservice
+    ports:
+      - "5001:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=user-db;Port=5432;Database=userDB;Username=admin;Password=12345678
+    depends_on:
+      - user-db
+    networks:
+      - microservices-network
+  tableservice:
+    build:
+      context: .
+      dockerfile: TableServices/Dockerfile
+    container_name: tableservice
+    ports:
+      - "5002:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=table-db;Port=5432;Database=tableDB;Username=admin;Password=12345678
+    depends_on:
+      - table-db
+    networks:
+      - microservices-network
+
+  menuservice:
+    build:
+      context: .
+      dockerfile: MenuServices/Dockerfile
+    container_name: menuservice
+    ports:
+      - "5003:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=menu-db;Port=5432;Database=menuDB;Username=admin;Password=12345678
+    depends_on:
+      - menu-db
+    networks:
+      - microservices-network
+
+  kitchenservice:
+    build:
+      context: .
+      dockerfile: KitchenServices/Dockerfile
+    container_name: kitchenservice
+    ports:
+      - "5004:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=kitchen-db;Port=5432;Database=kitchenDB;Username=admin;Password=12345678
+    depends_on:
+      - kitchen-db
+
+    networks:
+      - microservices-network
+# 📌 Database Services - Định danh rõ hơn
+  user-db:
+    image: postgres:16
+    container_name: user_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: userDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  table-db:
+    image: postgres:16
+    container_name: table_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: tableDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5436:5432"
+    volumes:
+      - table_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  menu-db:
+    image: postgres:16
+    container_name: menu_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: menuDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5433:5432"
+    volumes:
+      - menu_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  order-db:
+    image: postgres:16
+    container_name: order_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: orderDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5434:5432"
+    volumes:
+      - order_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  kitchen-db:
+    image: postgres:16
+    container_name: kitchen_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: kitchenDB
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5435:5432"
+    volumes:
+      - kitchen_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+networks:
+  microservices-network:
+    driver: bridge
+volumes:
+  user_data:
+  table_data:
+  menu_data:
+  order_data:
+  kitchen_data:
